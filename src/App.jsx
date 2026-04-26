@@ -131,7 +131,6 @@ function StatusBadge({ status, onChange }) {
 
 // ─── SECTION WRAPPER ──────────────────────────────────────────────────────────
 function Section({ label, color, children }) {
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div style={{ border: "1px solid #1a1a1a", borderRadius: "12px", overflow: "hidden" }}>
@@ -154,7 +153,6 @@ function StatusBadgeInline({ status, onChange }) {
     aprobado: { label: "Aprobado", color: "#00E676" },
     publicado: { label: "Publicado ✓", color: "#69F0AE" },
   };
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
@@ -184,7 +182,6 @@ function ContentDrawer({ card, brands, users, onUpdate, onSave, onClose }) {
   const updateField = (key, val) => onUpdate(card.id, "customFields", { ...card.customFields, [key]: val });
   const [brandOpen, setBrandOpen] = useState(false);
 
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div onClick={() => setBrandOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 500, display: "flex", alignItems: "stretch", justifyContent: "flex-end", background: "rgba(0,0,0,0.72)" }}>
@@ -507,7 +504,6 @@ function ContentCard({ card, brands, onEdit, onDelete }) {
   const statusColors = { pendiente:"#888", produccion:"#4CAF50", edicion:"#4D79FF", revision:"#FFC107", aprobado:"#00E676", publicado:"#69F0AE" };
   const sc = statusColors[card.status] || "#888";
 
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div style={{ background: "#111", border: `1px solid ${accentColor}25`, borderLeft: `3px solid ${accentColor}`, borderRadius: "12px", marginBottom: "8px", padding: "14px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
@@ -548,7 +544,6 @@ function DeleteConfirmModal({ card, brands, onConfirm, onCancel }) {
   const brandObj = brands.find(b => b.name === card.brand);
   const accentColor = brandObj ? brandObj.color : (ct ? ct.color : "#FF4D4D");
 
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div
@@ -654,7 +649,6 @@ function LogoUploader({ value, color, initials, onChange }) {
     reader.readAsDataURL(file);
   };
 
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -775,7 +769,6 @@ function GanttView({ cards, brands, users, onEdit }) {
     color: active ? color : "#666"
   });
 
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div>
@@ -939,7 +932,6 @@ function UsersView({ users, setUsers }) {
   };
   const deleteUser = (id) => { setUsers(users.filter(u => u.id !== id)); setDeletingId(null); };
 
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div>
@@ -1066,7 +1058,6 @@ function CalendarMonthly({ cards, brands, onCardClick }) {
   };
   const prevMonth = () => setViewDate(new Date(year, month - 1, 1));
   const nextMonth = () => setViewDate(new Date(year, month + 1, 1));
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div>
@@ -1140,7 +1131,6 @@ function CalendarWeekly({ cards, brands, onCardClick }) {
   const weekEnd = weekDays[6];
   const rangeLabel = `${weekDays[0].getDate()} ${MONTHS_ES[weekDays[0].getMonth()]} — ${weekEnd.getDate()} ${MONTHS_ES[weekEnd.getMonth()]} ${weekEnd.getFullYear()}`;
   const statusColors = { pendiente:"#888", produccion:"#4CAF50", edicion:"#4D79FF", revision:"#FFC107", aprobado:"#00E676", publicado:"#69F0AE" };
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div>
@@ -1196,7 +1186,6 @@ function CardDetailModal({ card, brands, onClose, onOpenDrawer }) {
   const ct = CONTENT_TYPES[card.contentType];
   const bo = brands.find(b => b.name === card.brand);
   const accentColor = bo ? bo.color : (ct ? ct.color : "#333");
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1000, padding:"20px" }}>
@@ -1317,7 +1306,6 @@ function PinScreen({ onSuccess }) {
     error: { color:'#FF4D4D', fontSize:'11px' }
   };
 
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div style={s.overlay}>
@@ -1345,7 +1333,6 @@ function PinScreen({ onSuccess }) {
 
 // ─── CONNECTION INDICATOR ─────────────────────────────────────────────────────
 function ConnectionDot({ connected }) {
-  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div style={{ display:'flex', alignItems:'center', gap:'6px',

@@ -1369,6 +1369,7 @@ export default function ContentPlanner() {
   // ── WebSocket + Server sync ──────────────────────────────────────────────
   const wsRef = useRef(null);
   const syncTimeoutRef = useRef({});
+  const remoteUpdateRef = useRef(false); // flag to avoid re-sending received updates
 
   // Cargar datos del servidor al montar
   useEffect(() => {
@@ -1378,6 +1379,7 @@ export default function ContentPlanner() {
     fetch(`${SERVER}/api/data`)
       .then(r => r.json())
       .then(data => {
+        remoteUpdateRef.current = true;
         if (data.cards?.length > 0) {
           nextId = Math.max(...data.cards.map(c => c.id), 0) + 1;
           setCards(data.cards);
@@ -1389,57 +1391,77 @@ export default function ContentPlanner() {
       .finally(() => setLoaded(true));
 
     // Conectar WebSocket
-    const ws = new WebSocket(WS_URL);
-    wsRef.current = ws;
+    const connectWS = () => {
+      const ws = new WebSocket(WS_URL);
+      wsRef.current = ws;
 
-    ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
-      if (msg.type === 'CARDS_UPDATED') {
-        nextId = Math.max(...msg.payload.map(c => c.id), 0) + 1;
-        setCards(msg.payload);
-      }
-      if (msg.type === 'BRANDS_UPDATED') setBrands(msg.payload);
-      if (msg.type === 'USERS_UPDATED') setUsers(msg.payload);
+      ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        remoteUpdateRef.current = true;
+        if (msg.type === 'CARDS_UPDATED') {
+          nextId = Math.max(...msg.payload.map(c => c.id), 0) + 1;
+          setCards(msg.payload);
+        }
+        if (msg.type === 'BRANDS_UPDATED') setBrands(msg.payload);
+        if (msg.type === 'USERS_UPDATED') setUsers(msg.payload);
+      };
+
+      ws.onopen = () => setWsConnected(true);
+      ws.onclose = () => {
+        setWsConnected(false);
+        // Auto-reconnect after 3 seconds
+        setTimeout(connectWS, 3000);
+      };
+      ws.onerror = () => { setWsConnected(false); };
     };
 
-    ws.onopen = () => setWsConnected(true);
-    ws.onclose = () => setWsConnected(false);
-    ws.onerror = () => { setWsConnected(false); console.warn('WS desconectado'); };
-
-    return () => ws.close();
+    connectWS();
+    return () => wsRef.current?.close();
   }, []);
 
-  // Sincronizar cards al servidor con debounce
+  // Sincronizar cards al servidor con debounce (solo si fue cambio local)
   useEffect(() => {
     if (!loaded) return;
+    if (remoteUpdateRef.current) {
+      remoteUpdateRef.current = false;
+      return;
+    }
     clearTimeout(syncTimeoutRef.current.cards);
     syncTimeoutRef.current.cards = setTimeout(() => {
       if (wsRef.current?.readyState === 1) {
         wsRef.current.send(JSON.stringify({ type: 'UPDATE_CARDS', payload: cards }));
       }
-    }, 500);
+    }, 600);
   }, [cards, loaded]);
 
-  // Sincronizar brands
+  // Sincronizar brands (solo si fue cambio local)
   useEffect(() => {
     if (!loaded) return;
+    if (remoteUpdateRef.current) {
+      remoteUpdateRef.current = false;
+      return;
+    }
     clearTimeout(syncTimeoutRef.current.brands);
     syncTimeoutRef.current.brands = setTimeout(() => {
       if (wsRef.current?.readyState === 1) {
         wsRef.current.send(JSON.stringify({ type: 'UPDATE_BRANDS', payload: brands }));
       }
-    }, 500);
+    }, 600);
   }, [brands, loaded]);
 
-  // Sincronizar users
+  // Sincronizar users (solo si fue cambio local)
   useEffect(() => {
     if (!loaded) return;
+    if (remoteUpdateRef.current) {
+      remoteUpdateRef.current = false;
+      return;
+    }
     clearTimeout(syncTimeoutRef.current.users);
     syncTimeoutRef.current.users = setTimeout(() => {
       if (wsRef.current?.readyState === 1) {
         wsRef.current.send(JSON.stringify({ type: 'UPDATE_USERS', payload: users }));
       }
-    }, 500);
+    }, 600);
   }, [users, loaded]);
 
   const PRESET_COLORS = ["#FF4D4D","#FF6B35","#F0C040","#4CAF50","#1ABC9C","#4D79FF","#9B59B6","#E91E8C","#00BCD4","#FF9800","#8BC34A","#607D8B"];
